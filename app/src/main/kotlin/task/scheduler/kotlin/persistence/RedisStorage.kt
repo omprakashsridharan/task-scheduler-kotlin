@@ -1,12 +1,8 @@
 package task.scheduler.kotlin.persistence
 
-import arrow.core.None
-import arrow.core.Option
-import arrow.core.Some
+import arrow.core.*
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.fromAutoCloseable
-import arrow.fx.coroutines.fromCloseable
-import io.github.crackthecodeabhi.kreds.args.SetOption
 import io.github.crackthecodeabhi.kreds.connection.Endpoint
 import io.github.crackthecodeabhi.kreds.connection.KredsClient
 import io.github.crackthecodeabhi.kreds.connection.newClient
@@ -18,17 +14,22 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
         redisClient.close()
     }
 
-    override suspend fun set(key: String, value: String, timeToLiveInSeconds: Option<ULong>) {
-        redisClient.use { client ->
-            when (timeToLiveInSeconds) {
-                None -> client.set(key, value)
-                is Some -> client.set(key, value, SetOption.Builder().exSeconds(timeToLiveInSeconds.value).build())
+    override suspend fun set(key: String, value: String, timeToLiveInSeconds: Option<ULong>): Either<Throwable, Unit> =
+        Either.catch {
+            redisClient.use { client ->
+                client.set(key, value)
+                timeToLiveInSeconds.map {
+                    val expirySet = client.expire(key, it)
+                    if(expirySet.equals(0u)){
+                        throw Exception("Expiry was not set")
+                    }
+                }
             }
         }
-    }
 
-    override suspend fun get(key: String): Option<String> {
-        return redisClient.use { client ->
+
+    override suspend fun get(key: String): Either<Throwable,Option<String>> = Either.catch {
+        redisClient.use { client ->
             client.get(key)?.let {
                 return@use Some(it)
             }
