@@ -1,8 +1,9 @@
 package task.scheduler.kotlin.persistence
 
+import arrow.core.Either
 import arrow.core.Option
-import io.github.crackthecodeabhi.kreds.connection.KredsClient
 
 interface Storage {
-    suspend fun setWithExpiry(key: String, value: String, timeToLiveInSeconds: Option<ULong>)
+    suspend fun set(key: String, value: String, timeToLiveInSeconds: Option<ULong>)
+    suspend fun get(key: String): Option<String>
 }
