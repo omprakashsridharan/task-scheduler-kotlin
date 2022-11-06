@@ -13,6 +13,7 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 repositories {
@@ -40,6 +41,10 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    extensions.configure(kotlinx.kover.api.KoverTaskExtension::class) {
+        isDisabled.set(false)
+//        reportFile.set(file("$buildDir/custom/result.bin"))
+    }
 }
 
 application {
