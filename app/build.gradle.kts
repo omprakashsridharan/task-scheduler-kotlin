@@ -46,6 +46,9 @@ tasks.withType<Test>().configureEach {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.withType<Test>()) // tests are required to run before generating the report
+    reports {
+        xml.required.set(true)
+    }
 }
 
 application {
