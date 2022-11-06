@@ -21,10 +21,10 @@ val REDIS_IMAGE: DockerImageName = DockerImageName.parse("redis:7.0.5")
 @Testcontainers
 internal class RedisStorageTest {
 
-    lateinit var redisContainer: GenericContainer<*>
+    private lateinit var redisContainer: GenericContainer<*>
 
     @BeforeEach
-    internal fun beforeEach(): Unit {
+    internal fun beforeEach() {
         redisContainer = GenericContainer(REDIS_IMAGE)
             .withExposedPorts(6379).waitingFor(Wait.forListeningPort())
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*\\n", 1))
@@ -32,7 +32,7 @@ internal class RedisStorageTest {
     }
 
     @AfterEach
-    internal fun afterEach(): Unit {
+    internal fun afterEach() {
         redisContainer.stop()
     }
 
