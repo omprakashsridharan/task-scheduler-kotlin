@@ -44,7 +44,7 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
     }
 
     override suspend fun exists(key: String): Either<Throwable, Boolean> = Either.catch {
-        redisClient.use {client ->
+        redisClient.use { client ->
             client.exists(key) == 1L
         }
     }

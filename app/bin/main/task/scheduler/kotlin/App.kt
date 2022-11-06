@@ -19,5 +19,5 @@ fun main() = SuspendApp {
     resource {
         val dependencies = dependencies(env).bind()
     }
-            .use { awaitCancellation() }
+        .use { awaitCancellation() }
 }

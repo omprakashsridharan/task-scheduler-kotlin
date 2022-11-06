@@ -1,6 +1,9 @@
 package task.scheduler.kotlin.persistence
 
-import arrow.core.*
+import arrow.core.Either
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.fromAutoCloseable
 import io.github.crackthecodeabhi.kreds.connection.Endpoint
@@ -44,7 +47,7 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
     }
 
     override suspend fun exists(key: String): Either<Throwable, Boolean> = Either.catch {
-        redisClient.use {client ->
+        redisClient.use { client ->
             client.exists(key) == 1L
         }
     }
