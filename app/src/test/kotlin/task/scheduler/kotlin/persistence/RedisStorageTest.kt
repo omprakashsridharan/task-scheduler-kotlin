@@ -6,7 +6,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
@@ -23,6 +22,7 @@ val REDIS_IMAGE: DockerImageName = DockerImageName.parse("redis:7.0.5")
 internal class RedisStorageTest {
 
     lateinit var redisContainer: GenericContainer<*>
+
     @BeforeEach
     internal fun beforeEach(): Unit {
         redisContainer = GenericContainer(REDIS_IMAGE)
@@ -72,6 +72,47 @@ internal class RedisStorageTest {
             redisContainer.close()
             val setResult = redisStorage.set("KEY", "VALUE", Some(1u))
             assertTrue(setResult.isLeft())
+        }
+    }
+
+    @Test
+    fun `deletes two keys`() {
+        val redisStorage =
+            RedisStorage(Env.Redis(redisContainer.host, redisContainer.firstMappedPort))
+        runBlocking {
+            val setResult1 = redisStorage.set("KEY1", "VALUE", None)
+            assertTrue(setResult1.isRight())
+            val setResult2 = redisStorage.set("KEY2", "VALUE", None)
+            assertTrue(setResult2.isRight())
+            val deleteResult = redisStorage.delete(*arrayOf("KEY1", "KEY2"))
+            assertTrue(deleteResult.isRight())
+            deleteResult.map { assertEquals(2, it) }
+        }
+    }
+
+    @Test
+    fun `test key exists`() {
+        val redisStorage =
+            RedisStorage(Env.Redis(redisContainer.host, redisContainer.firstMappedPort))
+        runBlocking {
+            val setResult = redisStorage.set("KEY", "VALUE", None)
+            assertTrue(setResult.isRight())
+            val existResult = redisStorage.exists("KEY")
+            assertTrue(existResult.isRight())
+            existResult.map { assertTrue(it) }
+        }
+    }
+
+    @Test
+    fun `test key does not exists`() {
+        val redisStorage =
+            RedisStorage(Env.Redis(redisContainer.host, redisContainer.firstMappedPort))
+        runBlocking {
+            val setResult = redisStorage.set("KEY", "VALUE", None)
+            assertTrue(setResult.isRight())
+            val existResult = redisStorage.exists("KEY1")
+            assertTrue(existResult.isRight())
+            existResult.map { assertFalse(it) }
         }
     }
 }

@@ -20,7 +20,7 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
                 client.set(key, value)
                 timeToLiveInSeconds.map {
                     val expirySet = client.expire(key, it)
-                    if(expirySet.equals(0u)){
+                    if (expirySet.equals(0u)) {
                         throw Exception("Expiry was not set")
                     }
                 }
@@ -28,12 +28,24 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
         }
 
 
-    override suspend fun get(key: String): Either<Throwable,Option<String>> = Either.catch {
+    override suspend fun get(key: String): Either<Throwable, Option<String>> = Either.catch {
         redisClient.use { client ->
             client.get(key)?.let {
                 return@use Some(it)
             }
             return@use None
+        }
+    }
+
+    override suspend fun delete(vararg keys: String): Either<Throwable, Long> = Either.catch {
+        redisClient.use { client ->
+            return@use client.del(*keys)
+        }
+    }
+
+    override suspend fun exists(key: String): Either<Throwable, Boolean> = Either.catch {
+        redisClient.use {client ->
+            client.exists(key) == 1L
         }
     }
 }
