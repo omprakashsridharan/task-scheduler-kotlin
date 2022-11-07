@@ -7,7 +7,9 @@ import arrow.fx.coroutines.continuations.resource
 import arrow.fx.coroutines.fromAutoCloseable
 import com.rabbitmq.client.*
 import task.scheduler.kotlin.config.Env
-import java.nio.charset.StandardCharsets
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     private var connection: Connection
@@ -26,10 +28,11 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
         connection.createChannel()
     }
 
-    suspend fun assertExchange(exchange: String, type: BuiltinExchangeType): Either<Throwable, Unit> = either {
-        val channel = getChannel().bind()
-        channel.exchangeDeclare(exchange, type)
-    }
+    suspend fun assertExchange(exchange: String, type: BuiltinExchangeType): Either<Throwable, Unit> =
+        either {
+            val channel = getChannel().bind()
+            channel.exchangeDeclare(exchange, type)
+        }
 
     suspend fun assertQueue(queue: String, options: Map<String, Any>): Either<Throwable, Unit> = either {
         val channel = getChannel().bind()
@@ -46,12 +49,27 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
         channel.queueBind(queue, exchange, routingKey, arguments)
     }
 
-    suspend fun sendMessage(exchange: String, props: AMQP.BasicProperties, data: String): Either<Throwable, Unit> =
+    suspend fun sendMessage(
+        exchange: String,
+        props: AMQP.BasicProperties,
+        data: ByteArray
+    ): Either<Throwable, Unit> =
         either {
             val channel = getChannel().bind()
-            channel.basicPublish(exchange, "", props, data.toByteArray(StandardCharsets.UTF_8))
+            channel.basicPublish(exchange, "", props, data)
         }
 
+    suspend fun consumeMessage(queue: String): ByteArray = suspendCoroutine { cont ->
+        getChannel().map { channel: Channel ->
+            val deliverCallback = DeliverCallback { _: String?, delivery: Delivery ->
+                cont.resume(delivery.body)
+            }
+            val cancelCallback = CancelCallback { consumerTag: String? ->
+                cont.resumeWithException(Exception("$consumerTag Cancelled"))
+            }
+            channel.basicConsume(queue, true, "consumer", deliverCallback, cancelCallback)
+        }
+    }
 }
 
 class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), AutoCloseable, Messaging.Producer {
@@ -62,7 +80,7 @@ class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
     override suspend fun sendDelayedMessageToQueue(
         taskType: String,
         delayInMillis: Int,
-        data: String
+        data: ByteArray
     ): Either<Throwable, Unit> = either {
         val intermediateQueue = "${taskType}_INTERMEDIATE_QUEUE"
         val intermediateExchange = "${taskType}_INTERMEDIATE_EXCHANGE"
@@ -86,6 +104,20 @@ class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
 class AmqpConsumer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), AutoCloseable, Messaging.Consumer {
     override fun close() {
         super.close()
+    }
+
+    override suspend fun consume(
+        taskType: String
+    ): Either<Throwable, ByteArray> = either {
+        val finalQueue = "${taskType}_FINAL_QUEUE"
+        val finalExchange = "${taskType}_FINAL_EXCHANGE"
+        assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
+        assertQueue(finalQueue, mapOf()).bind()
+        bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
+        Either.catch {
+            val message = consumeMessage(finalQueue)
+            message
+        }.bind()
     }
 }
 

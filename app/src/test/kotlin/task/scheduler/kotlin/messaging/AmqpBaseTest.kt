@@ -70,7 +70,8 @@ internal class AmqpBaseTest {
             Assertions.assertTrue(queueAssertResult.isRight())
             val bindResult = amqpBase.bindQueue("TEST_QUEUE", "TEST_EXCHANGE", "", mapOf())
             Assertions.assertTrue(bindResult.isRight())
-            val sendMessageResult = amqpBase.sendMessage("TEST_EXCHANGE", AMQP.BasicProperties(),"MESSAGE")
+            val sendMessageResult =
+                amqpBase.sendMessage("TEST_EXCHANGE", AMQP.BasicProperties(), "MESSAGE".toByteArray())
             Assertions.assertTrue(sendMessageResult.isRight())
         }
     }

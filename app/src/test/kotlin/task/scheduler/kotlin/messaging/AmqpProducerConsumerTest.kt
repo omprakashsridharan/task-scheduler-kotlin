@@ -1,6 +1,6 @@
 package task.scheduler.kotlin.messaging
 
-import com.rabbitmq.client.BuiltinExchangeType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -10,11 +10,13 @@ import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import task.scheduler.kotlin.config.Env
+import java.nio.charset.StandardCharsets
 
 @Testcontainers
-internal class AmqpProducerTest {
+internal class AmqpProducerConsumerTest {
     private lateinit var rabbitMqContainer: RabbitMQContainer
     private lateinit var amqpProducer: AmqpProducer
+    private lateinit var amqpConsumer: AmqpConsumer
 
     @BeforeEach
     internal fun beforeEach() {
@@ -23,8 +25,11 @@ internal class AmqpProducerTest {
                 .withExposedPorts(5672)
                 .withVhost("test")
         rabbitMqContainer.start()
+        val rabbitMqUrl = "amqp://guest:guest@localhost:${rabbitMqContainer.getMappedPort(5672)}/test"
         amqpProducer =
-            AmqpProducer(Env.RabbitMq("amqp://guest:guest@localhost:${rabbitMqContainer.getMappedPort(5672)}/test"))
+            AmqpProducer(Env.RabbitMq(rabbitMqUrl))
+        amqpConsumer =
+            AmqpConsumer(Env.RabbitMq(rabbitMqUrl))
     }
 
     @AfterEach
@@ -35,8 +40,16 @@ internal class AmqpProducerTest {
     @Test
     fun sendDelayedMessageToQueue() {
         runBlocking {
-            val result = amqpProducer.sendDelayedMessageToQueue("TEST_TASK", 2000, "DATA")
-            Assertions.assertTrue(result.isRight())
+            val producerResult =
+                amqpProducer.sendDelayedMessageToQueue("TEST_TASK", 2000, "DATA".toByteArray(StandardCharsets.UTF_8))
+            Assertions.assertTrue(producerResult.isRight())
+            delay(2500)
+            val consumeResult = amqpConsumer.consume("TEST_TASK")
+            Assertions.assertTrue(consumeResult.isRight())
+            consumeResult.map {
+                val receivedMessage = String(it, StandardCharsets.UTF_8)
+                Assertions.assertEquals("DATA", receivedMessage)
+            }
         }
     }
 }
