@@ -2,7 +2,6 @@ package task.scheduler.kotlin.messaging
 
 import arrow.core.Either
 import arrow.core.continuations.either
-import arrow.core.flatMap
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.continuations.resource
 import arrow.fx.coroutines.fromAutoCloseable
