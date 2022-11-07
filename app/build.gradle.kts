@@ -38,6 +38,7 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.16.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
+    testImplementation("org.testcontainers:rabbitmq:1.17.5")
 }
 
 tasks.withType<Test>().configureEach {

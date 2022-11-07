@@ -13,7 +13,9 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     private var connection: Connection
 
     init {
-        connection = ConnectionFactory().newConnection(rabbitMqConfig.url)
+        val factory = ConnectionFactory()
+        factory.setUri(rabbitMqConfig.url)
+        connection = factory.newConnection()
     }
 
     override fun close() {
@@ -21,9 +23,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     }
 
     private fun getChannel(): Either<Throwable, Channel> = Either.catch {
-        connection.use {
-            connection.createChannel()
-        }
+        connection.createChannel()
     }
 
     fun assertExchange(exchange: String, type: BuiltinExchangeType): Either<Throwable, Unit> = Either.catch {
@@ -31,6 +31,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
             .map { c ->
                 c.exchangeDeclare(exchange, type)
             }
+            .mapLeft { e -> throw e }
     }
 
     fun assertQueue(queue: String, options: Map<String, Any>): Either<Throwable, Unit> = Either.catch {
@@ -38,6 +39,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
             .map { c ->
                 c.queueDeclare(queue, true, false, false, options)
             }
+            .mapLeft { e -> throw e }
     }
 
     fun bindQueue(
@@ -50,6 +52,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
             .map { c ->
                 c.queueBind(queue, exchange, routingKey, arguments)
             }
+            .mapLeft { e -> throw e }
     }
 
     fun sendMessage(exchange: String, props: AMQP.BasicProperties, data: String): Either<Throwable, Unit> =
@@ -57,6 +60,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
             getChannel().map { c ->
                 c.basicPublish(exchange, "", props, data.toByteArray(StandardCharsets.UTF_8))
             }
+                .mapLeft { e -> throw e }
         }
 
 }
