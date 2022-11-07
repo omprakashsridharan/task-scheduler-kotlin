@@ -6,10 +6,10 @@ import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.continuations.resource
 import arrow.fx.coroutines.fromAutoCloseable
 import com.rabbitmq.client.*
+import kotlinx.coroutines.suspendCancellableCoroutine
 import task.scheduler.kotlin.config.Env
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     private var connection: Connection
@@ -59,7 +59,7 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
             channel.basicPublish(exchange, "", props, data)
         }
 
-    suspend fun consumeMessage(queue: String): ByteArray = suspendCoroutine { cont ->
+    suspend fun consumeMessage(queue: String): ByteArray = suspendCancellableCoroutine { cont ->
         getChannel().map { channel: Channel ->
             val deliverCallback = DeliverCallback { _: String?, delivery: Delivery ->
                 cont.resume(delivery.body)
