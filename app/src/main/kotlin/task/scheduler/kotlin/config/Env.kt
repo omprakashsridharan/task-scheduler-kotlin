@@ -7,7 +7,7 @@ data class Env(val redis: Redis = Redis(), val rabbitMq: RabbitMq = RabbitMq(), 
 
     data class Redis(
         val host: String = getenv("REDIS_HOST") ?: "0.0.0.0",
-        val port: Int = getenv("REDIS_PORT").toIntOrNull() ?: 5672
+        val port: Int = getenv("REDIS_PORT")?.toIntOrNull() ?: 5672
     )
 
     data class RabbitMq(

@@ -35,6 +35,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-core:1.1.3")
     implementation("io.arrow-kt:arrow-fx-coroutines:1.1.3")
     implementation("io.arrow-kt:suspendapp:0.3.1")
+    implementation("com.rabbitmq:amqp-client:5.16.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
 }
