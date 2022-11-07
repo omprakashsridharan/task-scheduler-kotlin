@@ -22,45 +22,34 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
         connection.close()
     }
 
-    private fun getChannel(): Either<Throwable, Channel> = Either.catch {
+    fun getChannel(): Either<Throwable, Channel> = Either.catch {
         connection.createChannel()
     }
 
-    fun assertExchange(exchange: String, type: BuiltinExchangeType): Either<Throwable, Unit> = Either.catch {
-        getChannel()
-            .map { c ->
-                c.exchangeDeclare(exchange, type)
-            }
-            .mapLeft { e -> throw e }
+    suspend fun assertExchange(exchange: String, type: BuiltinExchangeType): Either<Throwable, Unit> = either {
+        val channel = getChannel().bind()
+        channel.exchangeDeclare(exchange, type)
     }
 
-    fun assertQueue(queue: String, options: Map<String, Any>): Either<Throwable, Unit> = Either.catch {
-        getChannel()
-            .map { c ->
-                c.queueDeclare(queue, true, false, false, options)
-            }
-            .mapLeft { e -> throw e }
+    suspend fun assertQueue(queue: String, options: Map<String, Any>): Either<Throwable, Unit> = either {
+        val channel = getChannel().bind()
+        channel.queueDeclare(queue, true, false, false, options)
     }
 
-    fun bindQueue(
+    suspend fun bindQueue(
         queue: String,
         exchange: String,
         routingKey: String,
         arguments: Map<String, Any>
-    ): Either<Throwable, Unit> = Either.catch {
-        getChannel()
-            .map { c ->
-                c.queueBind(queue, exchange, routingKey, arguments)
-            }
-            .mapLeft { e -> throw e }
+    ): Either<Throwable, Unit> = either {
+        val channel = getChannel().bind()
+        channel.queueBind(queue, exchange, routingKey, arguments)
     }
 
-    fun sendMessage(exchange: String, props: AMQP.BasicProperties, data: String): Either<Throwable, Unit> =
-        Either.catch {
-            getChannel().map { c ->
-                c.basicPublish(exchange, "", props, data.toByteArray(StandardCharsets.UTF_8))
-            }
-                .mapLeft { e -> throw e }
+    suspend fun sendMessage(exchange: String, props: AMQP.BasicProperties, data: String): Either<Throwable, Unit> =
+        either {
+            val channel = getChannel().bind()
+            channel.basicPublish(exchange, "", props, data.toByteArray(StandardCharsets.UTF_8))
         }
 
 }
@@ -74,7 +63,7 @@ class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
         taskType: String,
         delayInMillis: Int,
         data: String
-    ): Either<Throwable, Unit> = either.eager {
+    ): Either<Throwable, Unit> = either {
         val intermediateQueue = "${taskType}_INTERMEDIATE_QUEUE"
         val intermediateExchange = "${taskType}_INTERMEDIATE_EXCHANGE"
         val finalQueue = "${taskType}_FINAL_QUEUE"

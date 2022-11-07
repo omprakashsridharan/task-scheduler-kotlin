@@ -1,5 +1,6 @@
 package task.scheduler.kotlin.messaging
 
+import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.BuiltinExchangeType
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
@@ -42,13 +43,46 @@ internal class AmqpBaseTest {
 
     @Test
     fun assertQueue() {
+        runBlocking {
+            val assertResult = amqpBase.assertQueue("TEST_QUEUE", mapOf())
+            Assertions.assertTrue(assertResult.isRight())
+        }
     }
 
     @Test
     fun bindQueue() {
+        runBlocking {
+            val exchangeAssertResult = amqpBase.assertExchange("TEST_EXCHANGE", BuiltinExchangeType.FANOUT)
+            Assertions.assertTrue(exchangeAssertResult.isRight())
+            val queueAssertResult = amqpBase.assertQueue("TEST_QUEUE", mapOf())
+            Assertions.assertTrue(queueAssertResult.isRight())
+            val bindResult = amqpBase.bindQueue("TEST_QUEUE", "TEST_EXCHANGE", "", mapOf())
+            Assertions.assertTrue(bindResult.isRight())
+        }
     }
 
     @Test
     fun sendMessage() {
+        runBlocking {
+            val exchangeAssertResult = amqpBase.assertExchange("TEST_EXCHANGE", BuiltinExchangeType.FANOUT)
+            Assertions.assertTrue(exchangeAssertResult.isRight())
+            val queueAssertResult = amqpBase.assertQueue("TEST_QUEUE", mapOf())
+            Assertions.assertTrue(queueAssertResult.isRight())
+            val bindResult = amqpBase.bindQueue("TEST_QUEUE", "TEST_EXCHANGE", "", mapOf())
+            Assertions.assertTrue(bindResult.isRight())
+            val sendMessageResult = amqpBase.sendMessage("TEST_EXCHANGE", AMQP.BasicProperties(),"MESSAGE")
+            Assertions.assertTrue(sendMessageResult.isRight())
+        }
+    }
+
+    @Test
+    fun getChannel() {
+        runBlocking {
+            val assertResult = amqpBase.getChannel()
+            Assertions.assertTrue(assertResult.isRight())
+            assertResult.map { c ->
+                Assertions.assertTrue(c.isOpen)
+            }
+        }
     }
 }
