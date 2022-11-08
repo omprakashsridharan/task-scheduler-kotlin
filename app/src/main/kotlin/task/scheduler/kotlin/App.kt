@@ -22,6 +22,6 @@ suspend fun dependencies(env: Env) = resource {
 fun main() = SuspendApp {
     val env = Env()
     resource {
-        dependencies(env).bind()
+        dependencies(env)
     }.use { awaitCancellation() }
 }
