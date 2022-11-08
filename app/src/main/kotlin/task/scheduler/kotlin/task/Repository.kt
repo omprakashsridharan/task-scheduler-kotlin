@@ -31,7 +31,7 @@ class TaskRepositoryImpl(private val storage: Storage) : TaskRepository {
     }
 }
 
-fun taskRepository(storage: Storage): Resource<TaskRepositoryImpl> =
+fun taskRepository(storage: Storage): Resource<TaskRepository> =
     Resource.fromAutoCloseable {
         TaskRepositoryImpl(storage)
     }

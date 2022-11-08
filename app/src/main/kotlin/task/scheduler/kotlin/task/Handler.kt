@@ -28,7 +28,7 @@ class HandlerImpl(private val messagingConsumer: Messaging.Consumer, private val
     }
 }
 
-fun handler(messagingConsumer: Messaging.Consumer, taskRepository: TaskRepository): Resource<HandlerImpl> =
+fun handler(messagingConsumer: Messaging.Consumer, taskRepository: TaskRepository): Resource<Handler> =
     Resource.fromAutoCloseable {
         HandlerImpl(messagingConsumer, taskRepository)
     }

@@ -53,6 +53,6 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
     }
 }
 
-fun redis(redisConfig: Env.Redis): Resource<RedisStorage> = Resource.fromAutoCloseable {
+fun redis(redisConfig: Env.Redis): Resource<Storage> = Resource.fromAutoCloseable {
     RedisStorage(redisConfig)
 }

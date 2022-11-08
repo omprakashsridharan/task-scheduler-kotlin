@@ -121,7 +121,7 @@ class AmqpConsumer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
     }
 }
 
-fun amqp(rabbitMqConfig: Env.RabbitMq): Resource<Pair<AmqpProducer, AmqpConsumer>> = resource {
+fun amqp(rabbitMqConfig: Env.RabbitMq): Resource<Pair<Messaging.Producer, Messaging.Consumer>> = resource {
     val producer = Resource.fromAutoCloseable { AmqpProducer(rabbitMqConfig) }.bind()
     val consumer = Resource.fromAutoCloseable { AmqpConsumer(rabbitMqConfig) }.bind()
     Pair(producer, consumer)
