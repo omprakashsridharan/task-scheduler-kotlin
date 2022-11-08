@@ -6,17 +6,19 @@ import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.fromAutoCloseable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import task.scheduler.kotlin.messaging.Messaging
 
 interface Scheduler : AutoCloseable {
     suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, Unit>
 }
 
+private val logger = KotlinLogging.logger {}
+
 class SchedulerImpl(private val messagingProducer: Messaging.Producer, private val taskRepository: TaskRepository) :
     Scheduler {
     override fun close() {
-        messagingProducer.close()
-        taskRepository.close()
+        logger.info { "Closing TaskScheduler" }
     }
 
     override suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, Unit> = either {

@@ -5,8 +5,10 @@ import arrow.core.Some
 import arrow.core.continuations.either
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.fromAutoCloseable
+import mu.KotlinLogging
 import task.scheduler.kotlin.persistence.Storage
 
+private val logger = KotlinLogging.logger {}
 interface TaskRepository : AutoCloseable {
     suspend fun createTask(taskId: String, timeToLiveInSeconds: ULong): Either<Throwable, Unit>
     suspend fun deleteTask(taskId: String): Either<Throwable, Unit>
@@ -15,7 +17,7 @@ interface TaskRepository : AutoCloseable {
 
 class TaskRepositoryImpl(private val storage: Storage) : TaskRepository {
     override fun close() {
-        storage.close()
+        logger.info { "Closing Task Repository" }
     }
 
     override suspend fun createTask(taskId: String, timeToLiveInSeconds: ULong): Either<Throwable, Unit> = either {

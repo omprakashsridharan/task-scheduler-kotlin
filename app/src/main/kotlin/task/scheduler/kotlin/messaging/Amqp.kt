@@ -81,7 +81,7 @@ class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
 class AmqpProducer(private val amqpBase: AmqpBase) : Messaging.Producer {
 
     override fun close() {
-        amqpBase.close()
+        logger.info { "Closing RabbitMq producer" }
     }
 
     override suspend fun sendDelayedMessageToQueue(
@@ -110,7 +110,7 @@ class AmqpProducer(private val amqpBase: AmqpBase) : Messaging.Producer {
 
 class AmqpConsumer(private val amqpBase: AmqpBase) : AutoCloseable, Messaging.Consumer {
     override fun close() {
-        amqpBase.close()
+        logger.info { "Closing RabbitMq consumer" }
     }
 
     override suspend fun consume(
@@ -128,7 +128,7 @@ class AmqpConsumer(private val amqpBase: AmqpBase) : AutoCloseable, Messaging.Co
     }
 }
 
-fun amqp(rabbitMqConfig: Env.RabbitMq) = resource {
+fun amqp(rabbitMqConfig: Env.RabbitMq) = Resource.fromAutoCloseable {
     AmqpBase(rabbitMqConfig)
 }
 

@@ -3,7 +3,6 @@ package task.scheduler.kotlin
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.continuations.resource
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import task.scheduler.kotlin.config.Env
 import task.scheduler.kotlin.messaging.amqp
@@ -34,8 +33,8 @@ fun dependencies(env: Env) = resource {
 fun main() = SuspendApp {
     val env = Env()
     resource {
-        val dependencies = dependencies(env).use { it ->
-            delay(10000)
+        dependencies(env).use { it ->
+
         }
     }.use { awaitCancellation() }
 }

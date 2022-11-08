@@ -9,11 +9,33 @@ import arrow.fx.coroutines.fromAutoCloseable
 import io.github.crackthecodeabhi.kreds.connection.Endpoint
 import io.github.crackthecodeabhi.kreds.connection.KredsClient
 import io.github.crackthecodeabhi.kreds.connection.newClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import task.scheduler.kotlin.config.Env
 
+private val logger = KotlinLogging.logger {}
+
 class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
-    private val redisClient: KredsClient = newClient(Endpoint(redisConfig.host, redisConfig.port))
+    private val redisClient: KredsClient
+
+    init {
+        redisClient = newClient(Endpoint(redisConfig.host, redisConfig.port))
+        runBlocking {
+
+            val job = launch(Dispatchers.Default) {
+                redisClient.use {
+                    it.exists("TEST_KEY")
+                    logger.info { "Connected to Redis successfully" }
+                }
+            }
+            job.join()
+        }
+    }
+
     override fun close() {
+        logger.info { "Closing connection to Redis" }
         redisClient.close()
     }
 

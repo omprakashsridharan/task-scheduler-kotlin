@@ -6,9 +6,11 @@ import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.fromAutoCloseable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import task.scheduler.kotlin.messaging.Messaging
 import java.nio.charset.StandardCharsets
 
+private val logger = KotlinLogging.logger {}
 interface Handler : AutoCloseable {
     suspend fun handleTask(taskType: String): Either<Throwable, Task>
 }
@@ -23,8 +25,7 @@ class HandlerImpl(private val messagingConsumer: Messaging.Consumer, private val
     }
 
     override fun close() {
-        messagingConsumer.close()
-        taskRepository.close()
+        logger.info { "Closing TaskHandler" }
     }
 }
 
