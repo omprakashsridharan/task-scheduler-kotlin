@@ -7,11 +7,14 @@ import arrow.fx.coroutines.continuations.resource
 import arrow.fx.coroutines.fromAutoCloseable
 import com.rabbitmq.client.*
 import kotlinx.coroutines.suspendCancellableCoroutine
+import mu.KotlinLogging
 import task.scheduler.kotlin.config.Env
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
+private val logger = KotlinLogging.logger {}
+
+class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     private var connection: Connection
 
     init {
@@ -21,7 +24,10 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     }
 
     override fun close() {
-        connection.close()
+        if (connection.isOpen) {
+            logger.info("Closing AMQP connection")
+            connection.close()
+        }
     }
 
     fun getChannel(): Either<Throwable, Channel> = Either.catch {
@@ -72,9 +78,10 @@ open class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     }
 }
 
-class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), AutoCloseable, Messaging.Producer {
+class AmqpProducer(private val amqpBase: AmqpBase) : Messaging.Producer {
+
     override fun close() {
-        super.close()
+        amqpBase.close()
     }
 
     override suspend fun sendDelayedMessageToQueue(
@@ -87,13 +94,13 @@ class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
         val finalQueue = "${taskType}_FINAL_QUEUE"
         val finalExchange = "${taskType}_FINAL_EXCHANGE"
 
-        assertExchange(intermediateExchange, BuiltinExchangeType.FANOUT).bind()
-        assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
-        assertQueue(intermediateQueue, mapOf(("x-dead-letter-exchange" to finalExchange))).bind()
-        assertQueue(finalQueue, mapOf()).bind()
-        bindQueue(intermediateQueue, intermediateExchange, "", mapOf()).bind()
-        bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
-        sendMessage(
+        amqpBase.assertExchange(intermediateExchange, BuiltinExchangeType.FANOUT).bind()
+        amqpBase.assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
+        amqpBase.assertQueue(intermediateQueue, mapOf(("x-dead-letter-exchange" to finalExchange))).bind()
+        amqpBase.assertQueue(finalQueue, mapOf()).bind()
+        amqpBase.bindQueue(intermediateQueue, intermediateExchange, "", mapOf()).bind()
+        amqpBase.bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
+        amqpBase.sendMessage(
             intermediateExchange,
             AMQP.BasicProperties.Builder().expiration(delayInMillis.toString()).build(),
             data
@@ -101,9 +108,9 @@ class AmqpProducer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
     }
 }
 
-class AmqpConsumer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), AutoCloseable, Messaging.Consumer {
+class AmqpConsumer(private val amqpBase: AmqpBase) : AutoCloseable, Messaging.Consumer {
     override fun close() {
-        super.close()
+        amqpBase.close()
     }
 
     override suspend fun consume(
@@ -111,18 +118,22 @@ class AmqpConsumer(rabbitMqConfig: Env.RabbitMq) : AmqpBase(rabbitMqConfig), Aut
     ): Either<Throwable, ByteArray> = either {
         val finalQueue = "${taskType}_FINAL_QUEUE"
         val finalExchange = "${taskType}_FINAL_EXCHANGE"
-        assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
-        assertQueue(finalQueue, mapOf()).bind()
-        bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
+        amqpBase.assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
+        amqpBase.assertQueue(finalQueue, mapOf()).bind()
+        amqpBase.bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
         Either.catch {
-            val message = consumeMessage(finalQueue)
+            val message = amqpBase.consumeMessage(finalQueue)
             message
         }.bind()
     }
 }
 
-fun amqp(rabbitMqConfig: Env.RabbitMq): Resource<Pair<Messaging.Producer, Messaging.Consumer>> = resource {
-    val producer = Resource.fromAutoCloseable { AmqpProducer(rabbitMqConfig) }.bind()
-    val consumer = Resource.fromAutoCloseable { AmqpConsumer(rabbitMqConfig) }.bind()
+fun amqp(rabbitMqConfig: Env.RabbitMq) = resource {
+    AmqpBase(rabbitMqConfig)
+}
+
+fun messaging(amqpBase: AmqpBase): Resource<Pair<Messaging.Producer, Messaging.Consumer>> = resource {
+    val producer = Resource.fromAutoCloseable { AmqpProducer(amqpBase) }.bind()
+    val consumer = Resource.fromAutoCloseable { AmqpConsumer(amqpBase) }.bind()
     Pair(producer, consumer)
 }

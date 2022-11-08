@@ -26,10 +26,11 @@ internal class AmqpProducerConsumerTest {
                 .withVhost("test")
         rabbitMqContainer.start()
         val rabbitMqUrl = "amqp://guest:guest@localhost:${rabbitMqContainer.getMappedPort(5672)}/test"
+        val amqpBase = AmqpBase(Env.RabbitMq(rabbitMqUrl))
         amqpProducer =
-            AmqpProducer(Env.RabbitMq(rabbitMqUrl))
+            AmqpProducer(amqpBase)
         amqpConsumer =
-            AmqpConsumer(Env.RabbitMq(rabbitMqUrl))
+            AmqpConsumer(amqpBase)
     }
 
     @AfterEach
