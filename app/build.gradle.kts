@@ -9,8 +9,8 @@
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.6.21"
-
+    id("org.jetbrains.kotlin.jvm") version "1.7.20"
+    kotlin("plugin.serialization") version "1.7.20"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     jacoco
@@ -36,6 +36,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-fx-coroutines:1.1.3")
     implementation("io.arrow-kt:suspendapp:0.3.1")
     implementation("com.rabbitmq:amqp-client:5.16.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
@@ -53,6 +54,7 @@ tasks.jacocoTestReport {
         csv.required.set(true)
     }
 }
+
 
 application {
     // Define the main class for the application.

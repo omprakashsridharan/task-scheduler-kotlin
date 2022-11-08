@@ -3,7 +3,7 @@ package task.scheduler.kotlin.messaging
 import arrow.core.Either
 
 object Messaging {
-    interface Producer {
+    interface Producer : AutoCloseable {
         suspend fun sendDelayedMessageToQueue(
             taskType: String,
             delayInMillis: Int,
@@ -11,7 +11,7 @@ object Messaging {
         ): Either<Throwable, Unit>
     }
 
-    interface Consumer {
+    interface Consumer : AutoCloseable {
         suspend fun consume(
             taskType: String
         ): Either<Throwable, ByteArray>
