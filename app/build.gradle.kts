@@ -42,6 +42,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
+    testImplementation("io.mockk:mockk:1.13.2")
 }
 
 tasks.withType<Test>().configureEach {

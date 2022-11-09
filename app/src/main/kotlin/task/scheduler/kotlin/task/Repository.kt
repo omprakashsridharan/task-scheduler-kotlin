@@ -11,7 +11,7 @@ import task.scheduler.kotlin.persistence.Storage
 private val logger = KotlinLogging.logger {}
 interface TaskRepository : AutoCloseable {
     suspend fun createTask(taskId: String, timeToLiveInSeconds: ULong): Either<Throwable, Unit>
-    suspend fun deleteTask(taskId: String): Either<Throwable, Unit>
+    suspend fun deleteTask(taskId: String): Either<Throwable, Long>
     suspend fun isTaskValid(taskId: String): Either<Throwable, Boolean>
 }
 
@@ -24,8 +24,9 @@ class TaskRepositoryImpl(private val storage: Storage) : TaskRepository {
         storage.set(taskId, "", Some(timeToLiveInSeconds)).bind()
     }
 
-    override suspend fun deleteTask(taskId: String): Either<Throwable, Unit> = either {
-        storage.delete(taskId).bind()
+    override suspend fun deleteTask(taskId: String): Either<Throwable, Long> = either {
+        val x = storage.delete(taskId).bind()
+        x
     }
 
     override suspend fun isTaskValid(taskId: String): Either<Throwable, Boolean> = either {
