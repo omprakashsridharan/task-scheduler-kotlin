@@ -10,7 +10,7 @@ import mu.KotlinLogging
 import task.scheduler.kotlin.messaging.Messaging
 
 interface Scheduler : AutoCloseable {
-    suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, Unit>
+    suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, String>
 }
 
 private val logger = KotlinLogging.logger {}
@@ -21,7 +21,7 @@ class SchedulerImpl(private val messagingProducer: Messaging.Producer, private v
         logger.info { "Closing TaskScheduler" }
     }
 
-    override suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, Unit> = either {
+    override suspend fun scheduleTask(delayInMilliseconds: Int, task: Task): Either<Throwable, String> = either {
         taskRepository
             .createTask(task.taskId, task.ttlInSeconds).bind()
         messagingProducer.sendDelayedMessageToQueue(
