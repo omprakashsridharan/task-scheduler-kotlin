@@ -39,7 +39,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.2")
     implementation("org.slf4j:slf4j-simple:2.0.3")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
     testImplementation("io.mockk:mockk:1.13.2")
