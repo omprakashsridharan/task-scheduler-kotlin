@@ -35,21 +35,10 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          directory: ./app/build/jacoco
+          directory: ./app/build/kover
           verbose: true # optional (default = false)
       - name: Archive test report
         uses: actions/upload-artifact@v3
         with:
           name: Test report
           path: app/build/reports/tests/test
-      - name: Generate JaCoCo Badge
-        uses: cicirello/jacoco-badge-generator@v2
-        with:
-          generate-branches-badge: true
-          jacoco-csv-file: app/build/reports/jacoco/test/jacocoTestReport.csv
-      - name: Commit and push the badge (if it changed)
-        uses: EndBug/add-and-commit@v7
-        with:
-          default_author: github_actions
-          message: 'commit badge'
-          add: '*.svg'

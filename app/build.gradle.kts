@@ -11,9 +11,10 @@ plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.7.21"
     kotlin("plugin.serialization") version "1.7.21"
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    jacoco
+//    jacoco
 }
 
 repositories {
@@ -43,21 +44,33 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
     testImplementation("io.mockk:mockk:1.13.2")
+
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
+    finalizedBy(tasks.koverXmlReport)
 }
 
-tasks.jacocoTestReport {
-    dependsOn(tasks.withType<Test>()) // tests are required to run before generating the report
-    reports {
-        xml.required.set(true)
-        csv.required.set(true)
+//tasks.jacocoTestReport {
+//    dependsOn(tasks.withType<Test>()) // tests are required to run before generating the report
+//    reports {
+//        xml.required.set(true)
+//        csv.required.set(true)
+//    }
+//}
+
+kover {
+    isDisabled.set(false)
+
+    xmlReport {
+        onCheck.set(false)
+    }
+
+    htmlReport {
+        onCheck.set(false)
     }
 }
-
 
 application {
     // Define the main class for the application.
