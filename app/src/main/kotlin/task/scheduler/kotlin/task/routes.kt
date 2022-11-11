@@ -13,18 +13,33 @@ data class TaskScheduleRequest(
     val payload: String
 )
 
+@Serializable
+data class TaskHandleRequest(
+    val taskType: String
+)
+
 fun Application.taskRoutes(
-    taskScheduler: Scheduler
+    taskScheduler: Scheduler,
+    taskHandler: Handler
 ) = routing {
     route("/task") {
         post("/schedule") {
             val req = call.receive<TaskScheduleRequest>()
             val task =
-                Task(taskType = req.taskType, ttlInMilliSeconds = req.ttlInMilliSeconds, payload = req.payload)
+                Task(taskType = req.taskType, ttlInMilliSeconds = (req.ttlInMilliSeconds + 10000u), payload = req.payload)
             taskScheduler.scheduleTask(req.ttlInMilliSeconds, task).map {
                 call.respond(HttpStatusCode.OK, it)
             }.mapLeft { call.respond(HttpStatusCode.InternalServerError) }
 
+        }
+
+        post("/handle") {
+            val req = call.receive<TaskHandleRequest>()
+            taskHandler.handleTask(req.taskType).map { taskOption ->
+                taskOption.fold(
+                    { call.respond(HttpStatusCode.OK, "TASK_INVALIDATED") },
+                    { call.respond(HttpStatusCode.OK, it) })
+            }.mapLeft { call.respond(HttpStatusCode.InternalServerError) }
         }
     }
 }

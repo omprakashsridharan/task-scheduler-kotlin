@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import task.scheduler.kotlin.messaging.Messaging
 import java.nio.charset.StandardCharsets
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 interface Handler : AutoCloseable {
@@ -21,7 +22,9 @@ interface Handler : AutoCloseable {
 class HandlerImpl(private val messagingConsumer: Messaging.Consumer, private val taskRepository: TaskRepository) :
     Handler {
     override suspend fun handleTask(taskType: String): Either<Throwable, Option<Task>> = either {
-        val taskString = String(messagingConsumer.consume(taskType).bind(), StandardCharsets.UTF_8)
+        val consumerTag = UUID.randomUUID()
+        val taskString =
+            String(messagingConsumer.consume(taskType, consumerTag.toString()).bind(), StandardCharsets.UTF_8)
         val task = Either.catch {
             Json.decodeFromString<Task>(taskString)
         }.bind()

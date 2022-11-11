@@ -16,7 +16,6 @@ private val logger = KotlinLogging.logger {}
 
 class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     private var connection: Connection
-
     init {
         val factory = ConnectionFactory()
         factory.setUri(rabbitMqConfig.url)
@@ -38,11 +37,13 @@ class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
         either {
             val channel = getChannel().bind()
             channel.exchangeDeclare(exchange, type)
+            channel.close()
         }
 
     suspend fun assertQueue(queue: String, options: Map<String, Any>): Either<Throwable, Unit> = either {
         val channel = getChannel().bind()
         channel.queueDeclare(queue, true, false, false, options)
+        channel.close()
     }
 
     suspend fun bindQueue(
@@ -53,6 +54,7 @@ class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
     ): Either<Throwable, Unit> = either {
         val channel = getChannel().bind()
         channel.queueBind(queue, exchange, routingKey, arguments)
+        channel.close()
     }
 
     suspend fun sendMessage(
@@ -63,18 +65,27 @@ class AmqpBase(rabbitMqConfig: Env.RabbitMq) : AutoCloseable {
         either {
             val channel = getChannel().bind()
             channel.basicPublish(exchange, "", props, data)
+            channel.close()
         }
 
-    suspend fun consumeMessage(queue: String): ByteArray = suspendCancellableCoroutine { cont ->
+    suspend fun consumeMessage(queue: String, consumerTag: String): ByteArray = suspendCancellableCoroutine { cont ->
         getChannel().map { channel: Channel ->
             val deliverCallback = DeliverCallback { _: String?, delivery: Delivery ->
+                channel.close()
                 cont.resume(delivery.body)
             }
             val cancelCallback = CancelCallback { consumerTag: String? ->
+                channel.close()
                 cont.resumeWithException(Exception("$consumerTag Cancelled"))
             }
-            channel.basicConsume(queue, true, "consumer", deliverCallback, cancelCallback)
+            Either.catch {
+                channel.basicConsume(queue, true, consumerTag, deliverCallback, cancelCallback)
+            }.mapLeft { cont.resumeWithException(it) }
+
+        }.mapLeft {
+            logger.error { it.message }
         }
+
     }
 }
 
@@ -113,16 +124,14 @@ class AmqpConsumer(private val amqpBase: AmqpBase) : AutoCloseable, Messaging.Co
         logger.info { "Closing RabbitMq consumer" }
     }
 
-    override suspend fun consume(
-        taskType: String
-    ): Either<Throwable, ByteArray> = either {
+    override suspend fun consume(taskType: String, consumerTag: String): Either<Throwable, ByteArray> = either {
         val finalQueue = "${taskType}_FINAL_QUEUE"
         val finalExchange = "${taskType}_FINAL_EXCHANGE"
         amqpBase.assertExchange(finalExchange, BuiltinExchangeType.FANOUT).bind()
         amqpBase.assertQueue(finalQueue, mapOf()).bind()
         amqpBase.bindQueue(finalQueue, finalExchange, "", mapOf()).bind()
         Either.catch {
-            val message = amqpBase.consumeMessage(finalQueue)
+            val message = amqpBase.consumeMessage(finalQueue, consumerTag)
             message
         }.bind()
     }

@@ -18,7 +18,7 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
     port: Int = 80,
     host: String = "0.0.0.0",
     configure: TConfiguration.() -> Unit = {},
-    preWait: Duration = 30.seconds,
+    preWait: Duration = 5.seconds,
     grace: Duration = 1.seconds,
     timeout: Duration = 5.seconds,
 ): Resource<ApplicationEngine> =

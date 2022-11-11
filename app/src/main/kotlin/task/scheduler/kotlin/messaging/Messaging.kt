@@ -13,7 +13,8 @@ object Messaging {
 
     interface Consumer : AutoCloseable {
         suspend fun consume(
-            taskType: String
+            taskType: String,
+            consumerTag: String
         ): Either<Throwable, ByteArray>
     }
 }

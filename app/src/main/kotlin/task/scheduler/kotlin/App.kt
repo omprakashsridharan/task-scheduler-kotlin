@@ -45,5 +45,5 @@ fun main() = SuspendApp {
 
 fun Application.app(dependencies: Dependencies) {
     configure()
-    taskRoutes(dependencies.taskScheduler)
+    taskRoutes(dependencies.taskScheduler, dependencies.taskHandler)
 }

@@ -83,6 +83,7 @@ internal class AmqpBaseTest {
             Assertions.assertTrue(assertResult.isRight())
             assertResult.map { c ->
                 Assertions.assertTrue(c.isOpen)
+                c.close()
             }
         }
     }
