@@ -47,8 +47,6 @@ dependencies {
     implementation("io.ktor:ktor-server-default-headers-jvm:2.1.3")
     implementation("io.ktor:ktor-server-content-negotiation:2.1.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.1.3")
-    testImplementation("io.ktor:ktor-server-test-host:2.1.3")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:2.1.3")
     implementation("io.ktor:ktor-client-core:2.1.3")
     implementation("io.ktor:ktor-client-cio:2.1.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")

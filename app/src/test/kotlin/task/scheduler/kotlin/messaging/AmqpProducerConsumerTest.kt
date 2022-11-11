@@ -45,7 +45,7 @@ internal class AmqpProducerConsumerTest {
                 amqpProducer.sendDelayedMessageToQueue("TEST_TASK", 2000u, "DATA".toByteArray(StandardCharsets.UTF_8))
             Assertions.assertTrue(producerResult.isRight())
             delay(2500)
-            val consumeResult = amqpConsumer.consume("TEST_TASK")
+            val consumeResult = amqpConsumer.consume("TEST_TASK", "TAG")
             Assertions.assertTrue(consumeResult.isRight())
             consumeResult.map {
                 val receivedMessage = String(it, StandardCharsets.UTF_8)

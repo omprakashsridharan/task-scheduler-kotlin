@@ -30,7 +30,7 @@ internal class HandlerImplTest {
             Either.catch { true }
         runBlocking {
             coEvery {
-                messageConsumer.consume(taskType = task.taskType)
+                messageConsumer.consume(taskType = task.taskType, any())
             } returns successMessageConsumeResult
 
             coEvery {
@@ -39,7 +39,7 @@ internal class HandlerImplTest {
 
             val handleTaskResult = handlerImpl.handleTask(task.taskType)
             coVerifyOrder {
-                messageConsumer.consume(task.taskType)
+                messageConsumer.consume(task.taskType, any())
                 taskRepositoryImpl.isTaskValid(taskId = task.taskId)
             }
             assertTrue(handleTaskResult.isRight())
@@ -58,7 +58,7 @@ internal class HandlerImplTest {
             Either.catch { false }
         runBlocking {
             coEvery {
-                messageConsumer.consume(taskType = task.taskType)
+                messageConsumer.consume(taskType = task.taskType, any())
             } returns successMessageConsumeResult
 
             coEvery {
@@ -67,7 +67,7 @@ internal class HandlerImplTest {
 
             val handleTaskResult = handlerImpl.handleTask(task.taskType)
             coVerifyOrder {
-                messageConsumer.consume(task.taskType)
+                messageConsumer.consume(task.taskType, any())
                 taskRepositoryImpl.isTaskValid(taskId = task.taskId)
             }
             assertTrue(handleTaskResult.isRight())
@@ -84,12 +84,12 @@ internal class HandlerImplTest {
             Either.catch { throw Exception("MESSAGE_CONSUME_FAILED") }
         runBlocking {
             coEvery {
-                messageConsumer.consume(taskType = task.taskType)
+                messageConsumer.consume(taskType = task.taskType, any())
             } returns failureMessageConsumeResult
 
             val handleTaskResult = handlerImpl.handleTask(task.taskType)
             coVerifyOrder {
-                messageConsumer.consume(task.taskType)
+                messageConsumer.consume(task.taskType, any())
             }
             assertTrue(handleTaskResult.isLeft())
             handleTaskResult.mapLeft {

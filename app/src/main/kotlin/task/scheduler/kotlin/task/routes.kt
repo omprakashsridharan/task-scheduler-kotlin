@@ -26,7 +26,7 @@ fun Application.taskRoutes(
         post("/schedule") {
             val req = call.receive<TaskScheduleRequest>()
             val task =
-                Task(taskType = req.taskType, ttlInMilliSeconds = (req.ttlInMilliSeconds + 10000u), payload = req.payload)
+                Task(taskType = req.taskType, ttlInMilliSeconds = (req.ttlInMilliSeconds), payload = req.payload)
             taskScheduler.scheduleTask(req.ttlInMilliSeconds, task).map {
                 call.respond(HttpStatusCode.OK, it)
             }.mapLeft { call.respond(HttpStatusCode.InternalServerError) }
