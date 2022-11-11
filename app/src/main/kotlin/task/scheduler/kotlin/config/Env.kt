@@ -15,6 +15,7 @@ data class Env(val redis: Redis = Redis(), val rabbitMq: RabbitMq = RabbitMq(), 
     )
 
     data class Http(
+        val host: String = getenv("HOST") ?: "0.0.0.0",
         val port: Int = getenv("PORT")?.toIntOrNull() ?: 3000
     )
 }

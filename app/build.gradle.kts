@@ -40,6 +40,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
     implementation("org.slf4j:slf4j-simple:2.0.3")
+    implementation("io.ktor:ktor-server-core-jvm:2.1.3")
+    implementation("io.ktor:ktor-server-netty-jvm:2.1.3")
+    implementation("io.ktor:ktor-server-status-pages-jvm:2.1.3")
+    implementation("io.ktor:ktor-server-request-validation:2.1.3")
+    implementation("io.ktor:ktor-server-default-headers-jvm:2.1.3")
+    implementation("io.ktor:ktor-server-content-negotiation:2.1.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.1.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
@@ -51,14 +58,6 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     finalizedBy(tasks.koverXmlReport)
 }
-
-//tasks.jacocoTestReport {
-//    dependsOn(tasks.withType<Test>()) // tests are required to run before generating the report
-//    reports {
-//        xml.required.set(true)
-//        csv.required.set(true)
-//    }
-//}
 
 kover {
     isDisabled.set(false)

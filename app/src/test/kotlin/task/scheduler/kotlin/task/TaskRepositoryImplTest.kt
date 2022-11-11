@@ -22,10 +22,10 @@ internal class TaskRepositoryImplTest {
     fun `createTask successful`() {
         runBlocking {
             val successRedisSet: Either<Throwable, Unit> = Either.catch { }
-            coEvery { storage.set("TASK_ID", "", Some(1U)) } returns successRedisSet
-            val result = taskRepositoryImpl.createTask("TASK_ID", 1U)
+            coEvery { storage.set("TASK_ID", "", Some(1000U)) } returns successRedisSet
+            val result = taskRepositoryImpl.createTask("TASK_ID", 1000U)
             coVerify {
-                storage.set("TASK_ID", "", Some(1U))
+                storage.set("TASK_ID", "", Some(1000U))
             }
             assertTrue(result.isRight())
         }
@@ -35,10 +35,10 @@ internal class TaskRepositoryImplTest {
     fun `createTask failure`() {
         runBlocking {
             val failureRedisSet: Either<Throwable, Unit> = Either.catch { throw Exception("CANNOT SET KEY") }
-            coEvery { storage.set("TASK_ID", "", Some(1U)) } returns failureRedisSet
-            val result = taskRepositoryImpl.createTask("TASK_ID", 1U)
+            coEvery { storage.set("TASK_ID", "", Some(1000U)) } returns failureRedisSet
+            val result = taskRepositoryImpl.createTask("TASK_ID", 1000U)
             coVerify {
-                storage.set("TASK_ID", "", Some(1U))
+                storage.set("TASK_ID", "", Some(1000U))
             }
             assertTrue(result.isLeft())
         }

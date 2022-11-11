@@ -22,28 +22,28 @@ internal class SchedulerImplTest {
 
     @Test
     fun `scheduleTask success`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val successCreateTaskRepositoryResult: Either<Throwable, Unit> = Either.catch { }
         val successSendDelayedMessageToQueueResult: Either<Throwable, Unit> = Either.catch { }
         runBlocking {
             coEvery {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
             } returns successCreateTaskRepositoryResult
             coEvery {
                 messageProducer.sendDelayedMessageToQueue(
                     task.taskType,
-                    1,
+                    1000u,
                     Json.encodeToString(task).toByteArray()
                 )
             } returns successSendDelayedMessageToQueueResult
-            val scheduleTaskResult = schedulerImpl.scheduleTask(1, task)
+            val scheduleTaskResult = schedulerImpl.scheduleTask(1000u, task)
             coVerifyOrder {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
                 messageProducer.sendDelayedMessageToQueue(
                     task.taskType,
-                    1,
+                    1000u,
                     Json.encodeToString(task).toByteArray()
                 )
             }
@@ -56,18 +56,18 @@ internal class SchedulerImplTest {
 
     @Test
     fun `scheduleTask when taskRepository create fails`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val failureCreateTaskRepositoryResult: Either<Throwable, Unit> =
             Either.catch { throw Exception("TASK_CREATION_FAILED") }
         runBlocking {
             coEvery {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
             } returns failureCreateTaskRepositoryResult
-            val scheduleTaskResult = schedulerImpl.scheduleTask(1, task)
+            val scheduleTaskResult = schedulerImpl.scheduleTask(1000u, task)
             coVerify {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
             }
             assertTrue(scheduleTaskResult.isLeft())
             scheduleTaskResult.mapLeft {
@@ -78,29 +78,29 @@ internal class SchedulerImplTest {
 
     @Test
     fun `scheduleTask when producer sendDelayedMessageToQueue fails`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val successCreateTaskRepositoryResult: Either<Throwable, Unit> = Either.catch { }
         val failureSendDelayedMessageToQueueResult: Either<Throwable, Unit> =
             Either.catch { throw Exception("SEND_TO_QUEUE_FAILED") }
         runBlocking {
             coEvery {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
             } returns successCreateTaskRepositoryResult
             coEvery {
                 messageProducer.sendDelayedMessageToQueue(
                     task.taskType,
-                    1,
+                    1000u,
                     Json.encodeToString(task).toByteArray()
                 )
             } returns failureSendDelayedMessageToQueueResult
-            val scheduleTaskResult = schedulerImpl.scheduleTask(1, task)
+            val scheduleTaskResult = schedulerImpl.scheduleTask(1000u, task)
             coVerifyOrder {
                 taskRepositoryImpl
-                    .createTask(task.taskId, task.ttlInSeconds)
+                    .createTask(task.taskId, task.ttlInMilliSeconds)
                 messageProducer.sendDelayedMessageToQueue(
                     task.taskType,
-                    1,
+                    1000u,
                     Json.encodeToString(task).toByteArray()
                 )
             }

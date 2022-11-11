@@ -52,7 +52,7 @@ internal class RedisStorageTest {
         val redisStorage =
             RedisStorage(Env.Redis(redisContainer.host, redisContainer.firstMappedPort))
         runBlocking {
-            val setResult = redisStorage.set("KEY", "VALUE", Some(1u))
+            val setResult = redisStorage.set("KEY", "VALUE", Some(1000u))
             assertTrue(setResult.isRight())
             val getResult1 = redisStorage.get("KEY")
             assertTrue(getResult1.isRight())
@@ -70,7 +70,7 @@ internal class RedisStorageTest {
             RedisStorage(Env.Redis(redisContainer.host, redisContainer.firstMappedPort))
         runBlocking {
             redisContainer.close()
-            val setResult = redisStorage.set("KEY", "VALUE", Some(1u))
+            val setResult = redisStorage.set("KEY", "VALUE", Some(1000u))
             assertTrue(setResult.isLeft())
         }
     }

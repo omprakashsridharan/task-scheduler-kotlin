@@ -39,12 +39,16 @@ class RedisStorage(redisConfig: Env.Redis) : AutoCloseable, Storage {
         redisClient.close()
     }
 
-    override suspend fun set(key: String, value: String, timeToLiveInSeconds: Option<ULong>): Either<Throwable, Unit> =
+    override suspend fun set(
+        key: String,
+        value: String,
+        timeToLiveInMilliSeconds: Option<ULong>
+    ): Either<Throwable, Unit> =
         Either.catch {
             redisClient.use { client ->
                 client.set(key, value)
-                timeToLiveInSeconds.map {
-                    val expirySet = client.expire(key, it)
+                timeToLiveInMilliSeconds.map {
+                    val expirySet = client.expire(key, (it).floorDiv(1000u))
                     if (expirySet.equals(0u)) {
                         throw Exception("Expiry was not set")
                     }

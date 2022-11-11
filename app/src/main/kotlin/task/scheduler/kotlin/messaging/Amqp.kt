@@ -86,7 +86,7 @@ class AmqpProducer(private val amqpBase: AmqpBase) : Messaging.Producer {
 
     override suspend fun sendDelayedMessageToQueue(
         taskType: String,
-        delayInMillis: Int,
+        delayInMillis: ULong,
         data: ByteArray
     ): Either<Throwable, Unit> = either {
         val intermediateQueue = "${taskType}_INTERMEDIATE_QUEUE"

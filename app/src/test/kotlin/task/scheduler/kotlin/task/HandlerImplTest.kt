@@ -23,7 +23,7 @@ internal class HandlerImplTest {
 
     @Test
     fun `handleTask success valid task`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val successMessageConsumeResult: Either<Throwable, ByteArray> =
             Either.catch { Json.encodeToString(task).toByteArray() }
         val successTaskValidResult: Either<Throwable, Boolean> =
@@ -51,7 +51,7 @@ internal class HandlerImplTest {
 
     @Test
     fun `handleTask success invalid task`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val successMessageConsumeResult: Either<Throwable, ByteArray> =
             Either.catch { Json.encodeToString(task).toByteArray() }
         val successTaskValidResult: Either<Throwable, Boolean> =
@@ -79,7 +79,7 @@ internal class HandlerImplTest {
 
     @Test
     fun `handleTask messageConsumer consume fails`() {
-        val task = Task(taskType = "TYPE", ttlInSeconds = 1U, payload = "DATA")
+        val task = Task(taskType = "TYPE", ttlInMilliSeconds = 1U, payload = "DATA")
         val failureMessageConsumeResult: Either<Throwable, ByteArray> =
             Either.catch { throw Exception("MESSAGE_CONSUME_FAILED") }
         runBlocking {

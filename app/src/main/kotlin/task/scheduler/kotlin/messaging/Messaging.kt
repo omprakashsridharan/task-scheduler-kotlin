@@ -6,7 +6,7 @@ object Messaging {
     interface Producer : AutoCloseable {
         suspend fun sendDelayedMessageToQueue(
             taskType: String,
-            delayInMillis: Int,
+            delayInMillis: ULong,
             data: ByteArray
         ): Either<Throwable, Unit>
     }

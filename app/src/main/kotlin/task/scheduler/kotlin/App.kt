@@ -2,12 +2,16 @@ package task.scheduler.kotlin
 
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.continuations.resource
+import io.ktor.server.application.*
+import io.ktor.server.netty.*
 import kotlinx.coroutines.awaitCancellation
 import mu.KotlinLogging
 import task.scheduler.kotlin.config.Env
 import task.scheduler.kotlin.messaging.amqp
 import task.scheduler.kotlin.messaging.messaging
 import task.scheduler.kotlin.persistence.redis
+import task.scheduler.kotlin.server.configure
+import task.scheduler.kotlin.server.server
 import task.scheduler.kotlin.task.*
 
 private val logger = KotlinLogging.logger {}
@@ -33,8 +37,13 @@ fun dependencies(env: Env) = resource {
 fun main() = SuspendApp {
     val env = Env()
     resource {
-        dependencies(env).use { it ->
-
-        }
+        val dependencies = dependencies(env).bind()
+        val engine = server(Netty, host = env.http.host, port = env.http.port).bind()
+        engine.application.app(dependencies)
     }.use { awaitCancellation() }
+}
+
+fun Application.app(dependencies: Dependencies) {
+    configure()
+    taskRoutes(dependencies.taskScheduler)
 }
