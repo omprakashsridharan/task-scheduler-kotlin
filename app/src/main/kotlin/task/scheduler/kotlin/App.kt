@@ -2,7 +2,6 @@ package task.scheduler.kotlin
 
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.continuations.resource
-import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.awaitCancellation
 import mu.KotlinLogging
@@ -39,11 +38,6 @@ fun main() = SuspendApp {
     resource {
         val dependencies = dependencies(env).bind()
         val engine = server(Netty, host = env.http.host, port = env.http.port).bind()
-        engine.application.app(dependencies)
+        engine.application.configure(dependencies)
     }.use { awaitCancellation() }
-}
-
-fun Application.app(dependencies: Dependencies) {
-    configure()
-    taskRoutes(dependencies.taskScheduler, dependencies.taskHandler)
 }
