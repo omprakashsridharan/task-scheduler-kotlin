@@ -50,7 +50,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:2.1.3")
     implementation("io.ktor:ktor-client-cio:2.1.3")
     implementation("io.ktor:ktor-server-metrics-micrometer:2.1.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
     testImplementation("org.testcontainers:rabbitmq:1.17.5")
