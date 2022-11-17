@@ -53,7 +53,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.9.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
     testImplementation("org.testcontainers:junit-jupiter:1.17.5")
-    testImplementation("org.testcontainers:rabbitmq:1.17.5")
+    testImplementation("org.testcontainers:rabbitmq:1.17.6")
     testImplementation("io.mockk:mockk:1.13.2")
 
 }
