@@ -39,7 +39,7 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.16.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
-    implementation("org.slf4j:slf4j-simple:2.0.3")
+    implementation("org.slf4j:slf4j-simple:2.0.4")
     implementation("io.ktor:ktor-server-core-jvm:2.1.3")
     implementation("io.ktor:ktor-server-netty-jvm:2.1.3")
     implementation("io.ktor:ktor-server-status-pages-jvm:2.1.3")
